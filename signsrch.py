@@ -84,7 +84,19 @@ class signsrch_t(plugin_t):
         return PLUGIN_OK
 
     def run(self, arg):
-        ignored = ["be", "le"][cvar.inf.is_be()]
+
+        if IDA_SDK_VERSION >= 900:
+            is_be = inf_is_be()
+        else:
+            try:
+                # since IDA7 beta 3 (170724) renamed inf.mf -> is_be()/set_be()
+                is_be = idaapi.cvar.inf.is_be()
+            except:
+                # older IDA versions
+                is_be = idaapi.cvar.inf.mf
+
+        ignored = ["be", "le"][is_be]
+
         signatures = [s for s in load_signatures() if s["endian"] != ignored]
 
         if not signatures:
